@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rubric — a red-letter Bible with Reformation &amp; Puritan commentary</title>
+<meta name="description" content="A free, open-source Bible reader with the words of Jesus in red and side-by-side commentary from Gill, Henry, Calvin, and other Reformation and Puritan-era writers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#" class="brand" id="brand-home" title="Rubric — home">
+      <span class="brand-glyph">R</span>
+      <span class="brand-name">Rubric</span>
+    </a>
+
+    <form id="jump-form" class="jump-form" autocomplete="off">
+      <input type="text" id="jump-input" placeholder="Go to… e.g. John 3:16" aria-label="Jump to a passage">
+      <button type="submit" aria-label="Go">Go</button>
+    </form>
+
+    <nav class="nav-controls">
+      <select id="book-select" aria-label="Book"></select>
+      <select id="chapter-select" aria-label="Chapter"></select>
+      <select id="translation-select" aria-label="Translation"></select>
+    </nav>
+
+    <button id="menu-toggle" class="menu-toggle" aria-label="Toggle reading options" aria-expanded="false">⋯</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="reading" id="reading" aria-live="polite">
+    <div class="chapter-head">
+      <h1 id="chapter-title">Loading…</h1>
+      <div class="chapter-nav">
+        <button id="prev-chapter" title="Previous chapter">‹ Prev</button>
+        <button id="next-chapter" title="Next chapter">Next ›</button>
+      </div>
+    </div>
+    <p class="chapter-sub" id="chapter-sub"></p>
+    <div id="verses" class="verses">
+      <p class="loading">Fetching the text…</p>
+    </div>
+    <div class="reading-footer">
+      <p>
+        Words of Jesus appear <span class="legend-swatch"></span> in red.
+        Tap or click any verse to read commentary alongside it.
+      </p>
+    </div>
+  </section>
+
+  <aside class="commentary-rail" id="commentary-rail">
+    <div class="commentary-head">
+      <button class="sheet-close" id="sheet-close" aria-label="Close commentary">✕</button>
+      <h2>Commentary</h2>
+      <span class="commentary-ref" id="commentary-ref">Select a verse</span>
+    </div>
+    <div class="commentary-tabs" id="commentary-tabs"></div>
+    <div class="commentary-body" id="commentary-body">
+      <p class="hint">Choose a verse from the reading column to see what the Reformers and Puritans wrote about it — John Gill, Matthew Henry, John Calvin, and others.</p>
+    </div>
+  </aside>
+</main>
+
+<div class="scrim" id="scrim"></div>
+
+<footer class="site-footer">
+  <p>
+    Text and commentary served live from the
+    <a href="https://bible.helloao.org/docs/" target="_blank" rel="noopener">Free Use Bible API</a>
+    (AO Lab) — public-domain and openly-licensed sources, no key required.
+    App code is MIT-licensed and free to fork.
+    <!-- Once you push this to your own GitHub repo, point this link at it,
+         e.g. https://github.com/your-username/rubric -->
+    <a href="#" id="repo-link">Source on GitHub</a>
+  </p>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
