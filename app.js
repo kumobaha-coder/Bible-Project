@@ -97,7 +97,7 @@ init().catch((err) => {
 async function init() {
   restorePosition();
 
-  populateTranslationSelect();
+  await populateTranslationSelect();
   await loadBooksForTranslation(state.translationId);
 
   window.addEventListener("hashchange", onHashChange);
@@ -123,18 +123,110 @@ async function init() {
  * Translation + book selectors
  * ---------------------------------------------------------------- */
 
-function populateTranslationSelect() {
-  // A short curated list loads instantly; the full 1000+ translation
-  // catalog is available at api.getAvailableTranslations() if you want
-  // to build a richer picker (see README "Ideas for further work").
-  const curated = [
-    { id: "ENGWEBP", label: "World English Bible (WEB)" },
-    { id: "BSB", label: "Berean Standard Bible (BSB)" },
-  ];
-  els.translationSelect.innerHTML = curated
-    .map((t) => `<option value="${t.id}">${escapeHtml(t.label)}</option>`)
-    .join("");
+// Classic public-domain English versions to surface at the top of the
+// picker, matched by (lowercase, partial) englishName against whatever
+// the API actually returns — NOT hardcoded translation ids. The API's
+// 1000+ translation catalog doesn't use predictable ids (e.g. bulk
+// imports are keyed like "abt_map"), so matching by name is the only
+// approach that can't silently break if an id turns out to be wrong.
+const FEATURED_IDS = ["ENGWEBP", "BSB"]; // known-good, always first
+const FEATURED_NAME_KEYWORDS = [
+  "king james",
+  "american standard",
+  "young's literal",
+  "darby",
+  "douay",
+  "geneva",
+  "webster",
+  "weymouth",
+  "basic english",
+  "wycliffe",
+];
+const TRANSLATIONS_CACHE_KEY = "rubric:englishTranslations:v1";
+const TRANSLATIONS_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
+
+async function populateTranslationSelect() {
+  els.translationSelect.innerHTML = `<option>Loading versions…</option>`;
+
+  let english;
+  try {
+    english = await getEnglishTranslationsCached();
+  } catch (err) {
+    // Network hiccup on the catalog fetch shouldn't break the app —
+    // fall back to the two translations we already know work.
+    console.error("Couldn't load the translation catalog:", err);
+    english = [
+      { id: "ENGWEBP", englishName: "World English Bible", shortName: "WEB" },
+      { id: "BSB", englishName: "Berean Standard Bible", shortName: "BSB" },
+    ];
+  }
+
+  const used = new Set();
+  const featured = [];
+
+  for (const id of FEATURED_IDS) {
+    const t = english.find((x) => x.id === id);
+    if (t) {
+      featured.push(t);
+      used.add(t.id);
+    }
+  }
+  for (const keyword of FEATURED_NAME_KEYWORDS) {
+    const t = english.find(
+      (x) => !used.has(x.id) && x.englishName.toLowerCase().includes(keyword)
+    );
+    if (t) {
+      featured.push(t);
+      used.add(t.id);
+    }
+  }
+
+  const more = english
+    .filter((t) => !used.has(t.id))
+    .sort((a, b) => a.englishName.localeCompare(b.englishName));
+
+  const optionHtml = (t) => {
+    const suffix = t.shortName && t.shortName !== t.englishName ? ` (${t.shortName})` : "";
+    return `<option value="${t.id}">${escapeHtml(t.englishName + suffix)}</option>`;
+  };
+
+  els.translationSelect.innerHTML =
+    `<optgroup label="Featured">${featured.map(optionHtml).join("")}</optgroup>` +
+    (more.length
+      ? `<optgroup label="More English versions">${more.map(optionHtml).join("")}</optgroup>`
+      : "");
+
+  if (![...els.translationSelect.options].some((o) => o.value === state.translationId)) {
+    state.translationId = "ENGWEBP";
+  }
   els.translationSelect.value = state.translationId;
+}
+
+async function getEnglishTranslationsCached() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(TRANSLATIONS_CACHE_KEY) || "null");
+    if (cached && Date.now() - cached.savedAt < TRANSLATIONS_CACHE_MAX_AGE_MS) {
+      return cached.list;
+    }
+  } catch (_) {
+    /* corrupt cache — just refetch */
+  }
+
+  const data = await api.getAvailableTranslations();
+  const english = data.translations
+    .filter((t) => t.language === "eng")
+    .map((t) => ({ id: t.id, englishName: t.englishName, shortName: t.shortName }));
+
+  try {
+    localStorage.setItem(
+      TRANSLATIONS_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), list: english })
+    );
+  } catch (_) {
+    /* storage full or unavailable — fine, just won't cache */
+  }
+
+  return english;
 }
 
 async function loadBooksForTranslation(translationId) {

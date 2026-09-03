@@ -34,10 +34,25 @@ That means:
 
 ### Sources used by default
 
+The translation picker is populated **live** from the API's catalog, not
+hardcoded — `js/app.js` fetches `available_translations.json`, filters to
+English, and auto-detects classic public-domain versions by matching on
+their name (King James, American Standard, Young's Literal, Darby,
+Douay-Rheims, Geneva, Webster, Weymouth, Bible in Basic English,
+Wycliffe — whichever of these the API currently carries) into a
+"Featured" group at the top, with every other English translation in
+the API listed below that. This is deliberate: the API's 1000+
+translations don't use predictable ids (bulk imports are keyed like
+`abt_map`), so matching by name is the only approach that won't
+silently break if we guessed an id wrong. The result is cached in
+`localStorage` for a week so it doesn't re-download the whole catalog
+on every visit.
+
 | Type | id | Source | License |
 |---|---|---|---|
-| Bible text | `ENGWEBP` | World English Bible | Public domain |
+| Bible text | `ENGWEBP` | World English Bible (default) | Public domain |
 | Bible text (alt) | `BSB` | Berean Standard Bible | Public domain |
+| Bible text (alt) | *auto-detected* | King James Version, American Standard Version, Young's Literal Translation, Darby, Douay-Rheims, Geneva Bible, Webster's Bible, Weymouth NT, Bible in Basic English, Wycliffe Bible, and dozens more | Public domain (verify per-translation `licenseUrl` if redistributing) |
 | Commentary | `john-gill` | John Gill (1697–1771) | Public domain |
 | Commentary | `matthew-henry` | Matthew Henry (1662–1714) | Public domain |
 | Commentary | `john-calvin` | John Calvin (1509–1564), CCEL/Calvin Translation Society text | Public domain |
@@ -125,13 +140,16 @@ than a generic app look. All tokens live at the top of
 This was built as a solid, honest starting point — not a finished
 product. Natural next steps, roughly easiest first:
 
-- **More translations in the picker.** Only WEB and BSB are in the
-  dropdown by default (both confirmed to carry the `wordsOfJesus`
-  markup used for red-letter rendering). `api.getAvailableTranslations()`
-  already exposes the full 1000+ translation catalog — build a
-  searchable picker over it. Filter by `language === "eng"` for a
-  quick English-only list, and sanity-check any new translation
-  actually has red-letter data before defaulting to it.
+- **Not every English version marks red letters.** Only translations
+  that carry `wordsOfJesus` in their source data will render in red;
+  others still work fine, they just show in plain black. WEB is
+  confirmed to have this markup and stays the default for that reason.
+  If you want to detect this ahead of time and label versions that
+  don't support red-letter, fetch one chapter of known dialogue (e.g.
+  John 3) and check whether any `wordsOfJesus: true` shows up.
+- **A real search box for the translation picker**, instead of (or
+  alongside) the current two-optgroup `<select>` — useful once you're
+  regularly switching between many of the 1000+ non-English options.
 - **Verse-range display for commentary.** Older commentaries often
   comment on a span of verses under the first verse's number (e.g.
   Matthew Henry commenting on Matt 5:3–12 as one note). The app
@@ -165,6 +183,42 @@ product. Natural next steps, roughly easiest first:
   reference-jump parser and the "nearest earlier commented verse"
   fallback in `loadCommentary()` — both are pure functions and easy
   to unit test if you pull in a test runner.
+
+## Newsletter signup
+
+There's an optional email signup in the footer for telling people
+about new features as you build them. Since this is a static site
+with no backend, it posts straight to a third-party mailing-list
+provider rather than to any server of your own.
+
+It ships wired to **[Buttondown](https://buttondown.com)** (free tier,
+built specifically for "send an update as a project develops," no
+credit card required) as a working example. To activate it:
+
+1. Create a free Buttondown account and note your username.
+2. In `index.html`, replace both instances of `YOUR-USERNAME` in the
+   newsletter `<form>` with it.
+3. Deploy and test by subscribing yourself.
+
+That's it — no JavaScript, no server, no build step.
+
+**If you'd rather use a different provider**, swap the form's
+`action` (and `onsubmit`, if the provider doesn't use one) for
+theirs — the `<input name="email">` stays the same in every case:
+
+- **Mailchimp** — create an embedded signup form in your Mailchimp
+  audience settings; it gives you a full form snippet with its own
+  action URL and a couple of Mailchimp-specific hidden fields to copy
+  in alongside the email input.
+- **ConvertKit / Kit** — same idea: create a landing page/form in
+  their dashboard, copy the form action URL it gives you.
+- **Formspree** — if you'd rather just get emailed each signup than
+  run an actual mailing list, point the form at
+  `https://formspree.io/f/{your-form-id}` after creating a free form
+  there; no `target`/`onsubmit` popup needed, it can redirect normally.
+
+The signup is intentionally a plain footer form, not a popup or a
+gate on using the app — it doesn't block or interrupt reading.
 
 ## License
 

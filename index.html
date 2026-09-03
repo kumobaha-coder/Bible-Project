@@ -70,6 +70,54 @@
 
 <div class="scrim" id="scrim"></div>
 
+<section class="newsletter" aria-labelledby="newsletter-heading">
+  <div class="newsletter-inner">
+    <div class="newsletter-copy">
+      <span class="newsletter-icon" aria-hidden="true">R</span>
+      <div>
+        <h2 id="newsletter-heading">A note from the scriptorium</h2>
+        <p>Occasional word when a new translation, commentary voice, or reading feature is added — no more than a few times a year, unsubscribe anytime.</p>
+      </div>
+    </div>
+    <!--
+      NEWSLETTER SIGNUP — currently wired to Buttondown as a working example.
+      This is a static site with no backend, so the form posts straight to
+      a third-party mailing-list provider. To make this live:
+
+        1. Create a free account at https://buttondown.com (or any
+           provider below) and note your username.
+        2. Replace YOUR-USERNAME in the two places below with it.
+        3. Done — no other code changes needed. Test by subscribing
+           yourself once you deploy.
+
+      Alternatives if you'd rather not use Buttondown (see README.md
+      "Newsletter signup" section for exact swap-in instructions):
+        - Mailchimp embedded form (their own action URL + hidden fields)
+        - ConvertKit / Kit landing page form embed
+        - Formspree (https://formspree.io) if you just want submissions
+          emailed to you rather than a managed mailing list
+    -->
+    <form
+      class="newsletter-form"
+      action="https://buttondown.com/api/emails/embed-subscribe/YOUR-USERNAME"
+      method="post"
+      target="popupwindow"
+      onsubmit="window.open('https://buttondown.com/YOUR-USERNAME', 'popupwindow')"
+    >
+      <label for="newsletter-email" class="sr-only">Email address</label>
+      <input
+        type="email"
+        name="email"
+        id="newsletter-email"
+        placeholder="you@example.com"
+        required
+      >
+      <input type="hidden" value="1" name="embed">
+      <button type="submit">Notify me</button>
+    </form>
+  </div>
+</section>
+
 <footer class="site-footer">
   <p>
     Text and commentary served live from the
